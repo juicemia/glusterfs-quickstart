@@ -1,19 +1,21 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-require 'socket'
+if ARGV.include?('up') || ARGV.include?('reload')
+  require 'socket'
 
-# For the bridge network to work properly you need to set it up so that
-# it's on the same subnet as the interface being used for the bridge.
-# This is because the bridge is going to communicate over the interface's
-# broadcast address.
-iface = ENV['VAGRANT_BRIDGE_IFACE']
-raise 'VAGRANT_BRIDGE_IFACE required' if iface.to_s == ''
+  # For the bridge network to work properly you need to set it up so that
+  # it's on the same subnet as the interface being used for the bridge.
+  # This is because the bridge is going to communicate over the interface's
+  # broadcast address.
+  iface = ENV['VAGRANT_BRIDGE_IFACE']
+  raise 'VAGRANT_BRIDGE_IFACE required' if iface.to_s == ''
 
-sock = Socket.getifaddrs.select { |s| s.name == iface && s.addr.ipv4? }.first
-raise "#{iface} not found in list of interfaces" if sock.nil?
+  sock = Socket.getifaddrs.select { |s| s.name == iface && s.addr.ipv4? }.first
+  raise "#{iface} not found in list of interfaces" if sock.nil?
 
-slash24 = sock.addr.ip_address.split('.')[0...3].join('.')
+  slash24 = sock.addr.ip_address.split('.')[0...3].join('.')
+end
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
@@ -82,8 +84,6 @@ Vagrant.configure("2") do |config|
   #   apt-get install -y apache2
   # SHELL
 
-  
-
   [1, 2, 3].each do |id|
     file_to_disk = "./tmp/glusterfs-vol-#{id}.vdi"
 
@@ -92,8 +92,6 @@ Vagrant.configure("2") do |config|
       vol.vm.hostname = "vol#{id}"
 
       addr = "#{slash24}.1#{id}"
-      puts "Configuring #{vol.vm.hostname} with IP address #{addr}"
-
       vol.vm.network :public_network, ip: addr, bridge: 'wlp1s0'
 
       unless File.exist? file_to_disk
