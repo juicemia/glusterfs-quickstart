@@ -92,7 +92,7 @@ Vagrant.configure("2") do |config|
       vol.vm.hostname = "vol#{id}"
 
       addr = "#{slash24}.1#{id}"
-      vol.vm.network :public_network, ip: addr, bridge: 'wlp1s0'
+      vol.vm.network :public_network, ip: addr, bridge: iface
 
       unless File.exist? file_to_disk
         vol.vm.provider 'virtualbox' do |vbox|
