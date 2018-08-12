@@ -43,3 +43,20 @@
     loop_control:
       index_var: volume_index
     become: true
+
+  - name: Install GlusterFS Server
+    dnf:
+      name: glusterfs-server
+      state: present
+    become: true
+
+  - name: Enable and start GlusterFS Server
+    service:
+      name: glusterd
+      enabled: true
+      state: started
+    become: true
+
+  - name: Flush iptables
+    shell: iptables -F
+    become: true

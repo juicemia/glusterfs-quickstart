@@ -1,6 +1,6 @@
 # GlusterFS Quick Start
 
-**STATUS:** Right now this repo automates up to step two of the GlusterFS quick start guide.
+**STATUS:** Right now this repo automates up to step four of the GlusterFS quick start guide.
 
 This repo bootstraps a GlusterFS cluster using Vagrant and Ansible, following the steps shown
 in the GlusterFS Quick Start guide.
