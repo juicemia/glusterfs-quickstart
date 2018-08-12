@@ -14,7 +14,8 @@ class GlusterFSInventory:
             'hosts': ['%s.11' % slash24],
             'vars': {
                 'ansible_ssh_user': 'vagrant',
-                'ansible_ssh_private_key_file': '.vagrant/machines/vol1/virtualbox/private_key'
+                'ansible_ssh_private_key_file': '.vagrant/machines/vol1/virtualbox/private_key',
+                'gluster_volume_disks': []
             }
         }
 
@@ -22,7 +23,8 @@ class GlusterFSInventory:
             'hosts': ['%s.12' % slash24],
             'vars': {
                 'ansible_ssh_user': 'vagrant',
-                'ansible_ssh_private_key_file': '.vagrant/machines/vol2/virtualbox/private_key'
+                'ansible_ssh_private_key_file': '.vagrant/machines/vol2/virtualbox/private_key',
+                'gluster_volume_disks': []
             }
         }
 
@@ -30,7 +32,8 @@ class GlusterFSInventory:
             'hosts': ['%s.13' % slash24],
             'vars': {
                 'ansible_ssh_user': 'vagrant',
-                'ansible_ssh_private_key_file': '.vagrant/machines/vol3/virtualbox/private_key'
+                'ansible_ssh_private_key_file': '.vagrant/machines/vol3/virtualbox/private_key',
+                'gluster_volume_disks': []
             }
         }
 

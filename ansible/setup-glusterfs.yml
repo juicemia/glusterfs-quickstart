@@ -1,0 +1,45 @@
+---
+- hosts: all
+  tasks:
+  - name: Discover unpartitioned disks
+    set_fact:
+      gluster_volume_disks: "{{ gluster_volume_disks }} + [ '{{ item.key }}' ]"
+    when: item.value.partitions|length == 0
+    loop: "{{ lookup('dict', ansible_devices) }}"
+
+  - name: Partition empty disk
+    parted:
+      device: "/dev/{{ item }}"
+      number: 1
+      state: present
+    become: true
+    loop: "{{ gluster_volume_disks }}"
+
+  - name: Format new partition
+    filesystem:
+      dev: /dev/{{ item }}1
+      fstype: xfs
+    become: true
+    loop: "{{ gluster_volume_disks }}"
+
+  - name: Create brick mountpoint
+    file:
+      path: /data/brick{{ volume_index + 1 }}
+      state: directory
+    loop: "{{ gluster_volume_disks }}"
+    loop_control:
+      index_var: volume_index
+    become: true
+
+  - name: Configure fstab with new mount
+    mount:
+      path: /data/brick{{ volume_index + 1 }}
+      src: /dev/{{ item }}1
+      fstype: xfs
+      state: mounted
+      dump: 1
+      passno: 2
+    loop: "{{ gluster_volume_disks }}"
+    loop_control:
+      index_var: volume_index
+    become: true
