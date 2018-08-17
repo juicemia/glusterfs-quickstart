@@ -60,3 +60,18 @@
   - name: Flush iptables
     shell: iptables -F
     become: true
+
+- hosts: vol1
+  tasks:
+  - name: Probe first peer
+    shell: gluster peer probe {{ groups['vol2'][0] }}
+    become: true
+  - name: Probe second peer
+    shell: gluster peer probe {{ groups['vol3'][0] }}
+    become: true
+
+- hosts: vol2
+  tasks:
+  - name: Close the loop
+    shell: gluster peer probe {{ groups['vol1'][0] }}
+    become: true
