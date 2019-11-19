@@ -28,3 +28,16 @@ $: source venv/bin/activate
 $: VAGRANT_BRIDGE_IFACE=$YOUR_NETWORK_INTERFACE vagrant up
 $: VAGRANT_BRIDGE_IFACE=$YOUR_NETWORK_INTERFACE ansible-playbook -i ansible/inventory.py ansible/setup-glusterfs.yml
 ```
+
+## Using It
+
+```
+# Run the following on all machines in the cluster.
+sudo mount -t glusterfs localhost:/gv0 /vroot/fs
+
+# You should now be able to see data replicated across all the machines.
+host1$ touch /vroot/fs/foo
+
+host2$ ls /vroot/fs
+foo
+```
