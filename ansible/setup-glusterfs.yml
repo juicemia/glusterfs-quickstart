@@ -1,77 +1,68 @@
 ---
 - hosts: all
   tasks:
-  - name: Discover unpartitioned disks
-    set_fact:
-      gluster_volume_disks: "{{ gluster_volume_disks }} + [ '{{ item.key }}' ]"
-    when: item.value.partitions|length == 0
-    loop: "{{ lookup('dict', ansible_devices) }}"
-
-  - name: Partition empty disk
-    parted:
-      device: "/dev/{{ item }}"
-      number: 1
+  - name: Install baseline dependencies
+    apt:
+      name: software-properties-common
       state: present
-    become: true
-    loop: "{{ gluster_volume_disks }}"
+      update_cache: yes
+    become: yes
 
-  - name: Format new partition
-    filesystem:
-      dev: /dev/{{ item }}1
-      fstype: xfs
-    become: true
-    loop: "{{ gluster_volume_disks }}"
+  - name: Add GlusterFS apt key
+    apt_key:
+      url: https://download.gluster.org/pub/gluster/glusterfs/7/rsa.pub
+      state: present
+    become: yes
 
-  - name: Create brick mountpoint
-    file:
-      path: /data/brick{{ volume_index + 1 }}
-      state: directory
-    loop: "{{ gluster_volume_disks }}"
-    loop_control:
-      index_var: volume_index
-    become: true
-
-  - name: Configure fstab with new mount
-    mount:
-      path: /data/brick{{ volume_index + 1 }}
-      src: /dev/{{ item }}1
-      fstype: xfs
-      state: mounted
-      dump: 1
-      passno: 2
-    loop: "{{ gluster_volume_disks }}"
-    loop_control:
-      index_var: volume_index
-    become: true
+  - name: Add GlusterFS PPA
+    apt_repository:
+      repo: ppa:gluster/glusterfs-7
+      state: present
+      update_cache: yes
+    become: yes
 
   - name: Install GlusterFS Server
-    dnf:
+    apt:
       name: glusterfs-server
       state: present
-    become: true
+    become: yes
 
   - name: Enable and start GlusterFS Server
     service:
       name: glusterd
-      enabled: true
+      enabled: yes
       state: started
-    become: true
-
-  - name: Flush iptables
-    shell: iptables -F
-    become: true
+    become: yes
 
 - hosts: vol1
   tasks:
   - name: Probe first peer
     shell: gluster peer probe {{ groups['vol2'][0] }}
-    become: true
+    become: yes
   - name: Probe second peer
     shell: gluster peer probe {{ groups['vol3'][0] }}
-    become: true
+    become: yes
 
 - hosts: vol2
   tasks:
   - name: Close the loop
     shell: gluster peer probe {{ groups['vol1'][0] }}
-    become: true
+    become: yes
+
+- hosts: all
+  tasks:
+  - name: Create data directory
+    file:
+      state: directory
+      path: /vroot/data/brick
+    become: yes
+
+- hosts: vol1
+  tasks:
+  - name: Create the Gluster volume
+    command: gluster volume create gv0 replica 3 {{ groups['vol1'][0] }}:/vroot/data/brick {{ groups['vol2'][0] }}:/vroot/data/brick {{ groups['vol3'][0] }}:/vroot/data/brick force
+    become: yes
+
+  - name: Start the Gluster volume
+    command: gluster volume start gv0
+    become: yes
